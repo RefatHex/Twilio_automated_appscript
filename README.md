@@ -208,6 +208,8 @@ The system automatically handles responses as follows:
 
 ## Scheduling Surveys
 
+The system allows you to schedule surveys to be sent at a specific date and time in the future, which is useful for planning campaigns or sending surveys at optimal times.
+
 ### Method 1: Using the TriggerSheet
 
 1. Add a row to the TriggerSheet
@@ -215,16 +217,95 @@ The system automatically handles responses as follows:
 3. In the "Scheduled Time" column, enter the future date and time
 4. The system will check every 5 minutes and send surveys when it's time
 
+#### Example:
+
+| Phone Number | Region | Survey Type  | Scheduled Time      | Survey Sent | Timestamp | Status                                 |
+| ------------ | ------ | ------------ | ------------------- | ----------- | --------- | -------------------------------------- |
+| 966501234567 | KSA    | INSTALLATION | 2023-09-25 10:00:00 |             |           | Scheduled for Mon Sep 25 2023 10:00:00 |
+
+When the scheduled time arrives, the system will automatically send the survey and update the row:
+
+| Phone Number | Region | Survey Type  | Scheduled Time      | Survey Sent | Timestamp           | Status      |
+| ------------ | ------ | ------------ | ------------------- | ----------- | ------------------- | ----------- |
+| 966501234567 | KSA    | INSTALLATION | 2023-09-25 10:00:00 | ✅          | 2023-09-25 10:00:05 | Survey Sent |
+
 ### Method 2: Using the Ad-Hoc Survey Dialog
 
-1. Open the Ad-Hoc Survey Dialog
-2. Fill in all required fields
+1. Open the Ad-Hoc Survey Dialog from the "Survey System" menu
+2. Fill in all required fields:
+   - Phone numbers (one per line)
+   - Region
+   - Survey type
 3. Use the datetime picker to set a future time
 4. Click "Send Survey"
 
-### Viewing Scheduled Surveys
+#### Input Example:
 
-The TriggerSheet shows all scheduled surveys with a status of "Scheduled for [date/time]".
+![Ad-Hoc Survey Dialog Example](https://i.imgur.com/example1.png)
+_Example shows scheduling multiple surveys for Sep 25, 2023 at 10:00 AM_
+
+#### Output Example:
+
+After clicking "Send Survey", you'll see a confirmation message:
+
+```
+Processed 3 numbers. Success: 3, Errors: 0. Surveys scheduled for 9/25/2023, 10:00:00 AM
+```
+
+And the TriggerSheet will show:
+
+| Phone Number | Region | Survey Type  | Scheduled Time      | Survey Sent | Timestamp | Status    |
+| ------------ | ------ | ------------ | ------------------- | ----------- | --------- | --------- |
+| 966501234567 | KSA    | INSTALLATION | 2023-09-25 10:00:00 |             |           | Scheduled |
+| 966512345678 | KSA    | INSTALLATION | 2023-09-25 10:00:00 |             |           | Scheduled |
+| 966523456789 | KSA    | INSTALLATION | 2023-09-25 10:00:00 |             |           | Scheduled |
+
+### Time Format
+
+When entering a scheduled time in the TriggerSheet, use one of these formats:
+
+1. **Google Sheets Date/Time**: Simply enter a date and time using the Google Sheets date picker
+2. **ISO Format**: `YYYY-MM-DD HH:MM:SS` (e.g., `2023-09-25 10:00:00`)
+3. **Local Format**: Your computer's local date/time format will also work
+
+### Checking Scheduled Surveys
+
+The TriggerSheet shows all scheduled surveys with:
+
+- A future date in the "Scheduled Time" column
+- An empty "Survey Sent" column
+- A status of "Scheduled" or "Scheduled for [date/time]"
+
+### Modifying or Canceling Scheduled Surveys
+
+To cancel a scheduled survey:
+
+1. Find the row in the TriggerSheet
+2. Delete the row or clear the "Scheduled Time" cell
+
+To reschedule a survey:
+
+1. Find the row in the TriggerSheet
+2. Change the date/time in the "Scheduled Time" cell
+
+### How Scheduling Works
+
+The system creates a time-based trigger that runs every 5 minutes. This trigger:
+
+1. Checks the TriggerSheet for rows with:
+   - A scheduled time that has passed
+   - No value in the "Survey Sent" column
+2. Sends the survey for each qualifying row
+3. Updates the row with the sent status and timestamp
+
+### Troubleshooting Scheduled Surveys
+
+If scheduled surveys aren't being sent:
+
+1. Check that the scheduled time has actually passed
+2. Verify that the "Setup Scheduled Surveys" function has been run (via the menu)
+3. Check the Apps Script dashboard for any errors in the time-based trigger
+4. If needed, manually run "Survey System" > "Setup Scheduled Surveys" to recreate the trigger
 
 ## Region and Language Support
 
@@ -376,3 +457,10 @@ For Twilio-specific issues, refer to Twilio's documentation at https://www.twili
 - **MENU_UPLOAD**: Menu upload phase survey
 - **SHIPPING**: Shipping phase survey
 - **AD_HOC**: Custom ad-hoc surveys
+
+### Schedule Formats
+
+- **ISO Date**: YYYY-MM-DD HH:MM:SS (e.g., 2023-09-25 10:00:00)
+- **Relative Time**: Not directly supported, but you can use Google Sheets formulas:
+  - Tomorrow at 9am: `=TODAY()+1+TIME(9,0,0)`
+  - Next week same time: `=TODAY()+7+TIME(HOUR(NOW()),MINUTE(NOW()),0)`
